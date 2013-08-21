@@ -5,8 +5,8 @@
 
 import argparse
 import logging
-from os import environ, path
-from time import tzset
+import utils
+from os import path
 
 def bad(i):
   return 'Detected bad line at %d' % (i+1)
@@ -65,14 +65,7 @@ def main():
   parser.add_argument('--verbose', action='store_true')
   args = parser.parse_args()
 
-  environ['TZ'] = 'US/Pacific'
-  tzset()
-
-  level = logging.INFO
-  if args.verbose:
-    level = logging.DEBUG
-  logging.basicConfig(format='[%(levelname)s] %(asctime)s %(message)s',
-                      level=level)
+  utils.setup_logging(args.verbose)
 
   # Tickers are listed one per line.
   with open(args.ticker_file, 'r') as fp:

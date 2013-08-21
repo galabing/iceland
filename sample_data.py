@@ -7,8 +7,8 @@
 
 import argparse
 import logging
-from os import environ, path
-from time import tzset
+import utils
+from os import path
 
 def print_sample(sample, fp):
   print('%s %.2f %.2f' % (sample[0], sample[1], sample[2]), file=fp)
@@ -67,14 +67,7 @@ def main():
   # Sanity check.
   assert args.input_dir != args.output_dir
 
-  environ['TZ'] = 'US/Pacific'
-  tzset()
-
-  level = logging.INFO
-  if args.verbose:
-    level = logging.DEBUG
-  logging.basicConfig(format='[%(levelname)s] %(asctime)s %(message)s',
-                      level=level)
+  utils.setup_logging(args.verbose)
 
   # Tickers are listed one per line.
   with open(args.ticker_file, 'r') as fp:
