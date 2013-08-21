@@ -23,7 +23,21 @@ def validate(input_path):
       continue
     d, o, h, l, c, v, a = lines[i].split(',')
     if pd is None: pd = d
-    else: assert pd > d, bad(i)
+    else:
+      assert pd > d, bad(i)
+      # eg, 2013-08-20
+      ay, am, ad = pd.split('-')
+      by, bm, bd = d.split('-')
+      ay, am, ad = int(ay), int(am), int(ad)
+      by, bm, bd = int(by), int(bm), int(bd)
+      if am != bm:
+        if ay == by: assert am - bm <= 2, bad(i)
+        else:
+          assert ay - by == 1, bad(i)
+          assert am + 12 - bm <= 2, bad(i)
+      else: assert ay == by
+      pd = d
+        
     o = float(o)
     h = float(h)
     l = float(l)
