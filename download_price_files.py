@@ -48,7 +48,7 @@ def main():
     ticker = tickers[i]
     logging.info('%d/%d: %s' % (i+1, len(tickers), ticker))
 
-    output_path = '%s/%s.csv' % (args.output_dir, ticker)
+    output_path = '%s/%s.csv' % (args.output_dir, ticker.replace('^', '_'))
     dl = False
     if path.isfile(output_path):
       action = 'skipping'
