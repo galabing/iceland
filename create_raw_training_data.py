@@ -1,6 +1,11 @@
 #!/usr/local/bin/python3
 
-""" Creates training data for libsvm.
+""" Creates raw training data for libsvm.  The format is almost the same as
+    libsvm input, except that each line is prefixed by ticker and date, to
+    make it easier to track back the training data.
+
+    NOTE: --regression should always be specified for downstream splitting
+    script to work.  This flag should be removed.
 """
 
 import argparse
@@ -30,13 +35,8 @@ def read_data(file_path, min_date, max_date):
     d[date] = dd
   return d
 
-def make_label(label, regression):
-  if regression: return str(label)
-  if label > 0: return '+1'
-  return '-1'
-
-def create_training_data(feature_path, label_path, features, label,
-                         min_date, max_date, regression, fp):
+def create_raw_training_data(ticker, feature_path, label_path, features, label,
+                             min_date, max_date, regression, fp):
   feature_map = read_data(feature_path, min_date, max_date)
   label_map = read_data(label_path, min_date, max_date)
   count = 0
@@ -48,7 +48,7 @@ def create_training_data(feature_path, label_path, features, label,
         ok = False
         break
     if not ok: continue
-    items = [make_label(label_map[d][label], regression)]
+    items = [ticker, d, utils.make_label(label_map[d][label], regression)]
     for i in range(len(features)):
       items.append('%d:%f' % (i+1, feature_map[d][features[i]]))
     print(' '.join(items), file=fp)
@@ -89,9 +89,9 @@ def main():
     if not has_input:
       logging.warning('Input files do not exist for %s' % ticker)
       continue
-    create_training_data(feature_path, label_path, args.features.split(','),
-                         args.label, args.min_date, args.max_date,
-                         args.regression, fp)
+    create_raw_training_data(ticker, feature_path, label_path,
+                             args.features.split(','), args.label,
+                             args.min_date, args.max_date, args.regression, fp)
   fp.close()
 
 if __name__ == '__main__':

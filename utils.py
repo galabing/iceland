@@ -34,6 +34,11 @@ def compute_excess(stock_from, stock_to, market_from, market_to,
   if excess < min_cap: return min_cap
   return excess
 
+def make_label(label, regression):
+  if regression: return str(label)
+  if label > 0: return '+1'
+  return '-1'
+
 def setup_logging(verbose):
   environ['TZ'] = 'US/Pacific'
   tzset()
