@@ -67,7 +67,7 @@ def compute_excess(stock_from, stock_to, market_from, market_to,
 def compute_date(current_date, delta):
   y, m = current_date.split('-')
   y, m = int(y), int(m)
-  yd = delta / 12
+  yd = int(delta / 12)
   md = delta % 12
   y -= yd
   m -= md
