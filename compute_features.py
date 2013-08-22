@@ -35,32 +35,6 @@ ER_MONTHS = '1,2,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48'
 EV_MONTHS = '1,2,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45,48'
 PRICE_BONUS = 0.01
 VOLUME_BONUS = 1.0
-MIN_CAP = -1.0
-MAX_CAP = 1.0
-
-def read_samples(file_path):
-  with open(file_path, 'r') as fp:
-    lines = fp.read().splitlines()
-  d = dict()
-  for line in lines:
-    dt, vo, pr = line.split(' ')
-    vo, pr = float(vo), float(pr)
-    d[dt] = (pr, vo)  # The order is switched as we will output er before ev.
-  return d
-
-def compute_excess(stock_from, stock_to, market_from, market_to,
-                   bonus, min_cap=MIN_CAP, max_cap=MAX_CAP):
-  assert stock_from >= 0
-  assert stock_to >= 0
-  assert market_from >= 0
-  assert market_to >= 0
-  assert bonus > 0  # bonus must be positive to prevent divide-by-zero errors.
-  stock_r = (stock_to - stock_from) / (stock_from + bonus)
-  market_r = (market_to - market_from) / (market_from + bonus)
-  excess = stock_r - market_r
-  if excess > max_cap: return max_cap
-  if excess < min_cap: return min_cap
-  return excess
 
 # Computes the yyyy-mm string that is delta months before the current yyyy-mm
 # string.
@@ -87,22 +61,22 @@ def compute_features(stock_samples, market_samples, er_months, ev_months,
       if date_from not in stock_samples:
         continue
       assert date_from in market_samples
-      v = compute_excess(stock_samples[date_from][0],
-                         stock_samples[date_to][0],
-                         market_samples[date_from][0],
-                         market_samples[date_to][0],
-                         PRICE_BONUS)
+      v = utils.compute_excess(stock_samples[date_from][0],
+                               stock_samples[date_to][0],
+                               market_samples[date_from][0],
+                               market_samples[date_to][0],
+                               PRICE_BONUS)
       items.append('er%d:%.4f' % (m, v))
     for m in ev_months:
       date_from = compute_date(date_to, m)
       if date_from not in stock_samples:
         continue
       assert date_from in market_samples
-      v = compute_excess(stock_samples[date_from][1],
-                         stock_samples[date_to][1],
-                         market_samples[date_from][1],
-                         market_samples[date_to][1],
-                         VOLUME_BONUS)
+      v = utils.compute_excess(stock_samples[date_from][1],
+                               stock_samples[date_to][1],
+                               market_samples[date_from][1],
+                               market_samples[date_to][1],
+                               VOLUME_BONUS)
       items.append('ev%d:%.4f' % (m, v))
     if len(items) == 0:
       lines.append(date_to)
@@ -127,7 +101,7 @@ def main():
 
   utils.setup_logging(args.verbose)
 
-  market_samples = read_samples(args.market_sample_path)
+  market_samples = utils.read_samples(args.market_sample_path)
   er_months = [int(m) for m in args.er_months.split(',')]
   ev_months = [int(m) for m in args.ev_months.split(',')]
 
@@ -149,7 +123,7 @@ def main():
     if path.isfile(output_path) and not args.overwrite:
       logging.warning('Output file exists: %s, skipping' % output_path)
       continue
-    stock_samples = read_samples(stock_sample_path)
+    stock_samples = utils.read_samples(stock_sample_path)
     compute_features(stock_samples, market_samples, er_months, ev_months,
                      output_path)
 
